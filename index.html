@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Project Zomboid Save Editor</title>
+        <meta
+            name="description"
+            content="Browser-based Project Zomboid players.db editor. Revive dead characters and repair health entirely client-side."
+        />
+        <link rel="stylesheet" href="./src/ui/styles.css" />
+    </head>
+    <body>
+        <div id="app">
+            <header class="topbar">
+                <div class="brand">
+                    <span class="brand-mark">PZ</span>
+                    <div>
+                        <h1>Project Zomboid Save Editor</h1>
+                        <p class="brand-sub">players.db &middot; runs entirely in your browser</p>
+                    </div>
+                </div>
+                <div class="topbar-actions">
+                    <span id="db-summary" class="db-summary"></span>
+                    <button id="btn-reset-db" class="btn" hidden>Reset all changes</button>
+                    <button id="btn-export" class="btn btn-primary" hidden>Export players.db</button>
+                    <button id="btn-close" class="btn" hidden>Close</button>
+                </div>
+            </header>
+
+            <main id="screen-open" class="screen">
+                <div id="dropzone" class="dropzone">
+                    <h2>Open a players.db file</h2>
+                    <p>Drag and drop it here, or</p>
+                    <button id="btn-pick" class="btn btn-primary">Choose file&hellip;</button>
+                    <input id="file-input" type="file" accept=".db,.sqlite,application/octet-stream" hidden />
+                    <p class="hint">
+                        Found in your save folder, e.g.
+                        <code>%UserProfile%\Zomboid\Saves\&lt;mode&gt;\&lt;save&gt;\players.db</code>
+                    </p>
+                    <p class="hint privacy">
+                        Nothing is uploaded. The file is read and rewritten locally with SQLite compiled to
+                        WebAssembly.
+                    </p>
+                </div>
+                <div id="open-error" class="error-box" hidden></div>
+            </main>
+
+            <main id="screen-editor" class="screen editor" hidden>
+                <aside class="sidebar">
+                    <h2 class="sidebar-title">Characters</h2>
+                    <ul id="player-list" class="player-list"></ul>
+                    <div class="sidebar-footer">
+                        <h3>Database</h3>
+                        <dl id="db-info" class="kv"></dl>
+                    </div>
+                </aside>
+
+                <section class="workspace">
+                    <div id="player-header" class="player-header"></div>
+
+                    <nav class="tabs" id="tabs">
+                        <button class="tab is-active" data-tab="general">General</button>
+                        <button class="tab" data-tab="health">Health</button>
+                        <button class="tab" data-tab="position">Position</button>
+                        <button class="tab" data-tab="character">Character</button>
+                        <button class="tab" data-tab="inventory">Inventory</button>
+                        <button class="tab" data-tab="blob">Raw BLOB</button>
+                    </nav>
+
+                    <div id="tab-panels" class="panels">
+                        <div class="panel" data-panel="general"></div>
+                        <div class="panel" data-panel="health" hidden></div>
+                        <div class="panel" data-panel="position" hidden></div>
+                        <div class="panel" data-panel="character" hidden></div>
+                        <div class="panel" data-panel="inventory" hidden></div>
+                        <div class="panel" data-panel="blob" hidden></div>
+                    </div>
+                </section>
+
+                <aside class="changes">
+                    <div class="changes-head">
+                        <h2>Changes</h2>
+                        <button id="btn-reset-player" class="btn btn-small">Reset player</button>
+                    </div>
+                    <div id="change-list" class="change-list"></div>
+                </aside>
+            </main>
+        </div>
+
+        <script type="module" src="./src/ui/main.ts"></script>
+    </body>
+</html>

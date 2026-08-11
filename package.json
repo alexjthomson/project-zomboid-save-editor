@@ -1,0 +1,34 @@
+{
+    "name": "project-zomboid-save-editor",
+    "version": "0.1.0",
+    "description": "Browser-based Project Zomboid players.db save editor",
+    "scripts": {
+        "prepare:wasm": "node scripts/copy-wasm.mjs",
+        "dev": "npm run prepare:wasm && vite",
+        "build": "npm run prepare:wasm && tsc --noEmit && vite build",
+        "preview": "vite preview",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "typecheck": "tsc --noEmit"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/alexjthomson/project-zomboid-save-editor.git"
+    },
+    "type": "module",
+    "bugs": {
+        "url": "https://github.com/alexjthomson/project-zomboid-save-editor/issues"
+    },
+    "homepage": "https://github.com/alexjthomson/project-zomboid-save-editor#readme",
+    "devDependencies": {
+        "@types/node": "^26.2.0",
+        "@types/sql.js": "^1.4.11",
+        "typescript": "^7.0.2",
+        "vite": "^8.2.1",
+        "vitest": "^4.1.10"
+    },
+    "dependencies": {
+        "sql.js": "^1.14.1"
+    },
+    "private": true
+}
