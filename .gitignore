@@ -1,5 +1,4 @@
 node_modules/
 dist/
-public/sql-wasm.wasm
 *.local
 .DS_Store

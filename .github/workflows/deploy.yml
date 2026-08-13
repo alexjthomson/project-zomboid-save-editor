@@ -10,9 +10,11 @@ permissions:
   pages: write
   id-token: write
 
+# Allow one deployment at a time, but let a running one finish so a partially
+# uploaded site is never published.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -27,15 +29,22 @@ jobs:
 
       - run: npm ci
 
-      - run: npm test
+      # The BLOB round-trip tests are the safety gate for this project; a build
+      # that cannot re-serialise the sample save must never reach Pages.
+      - name: Run tests
+        run: npm test
 
-      # `base` must match the repository name so assets resolve under
-      # https://<user>.github.io/<repo>/
-      - run: npm run build
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      # Vite needs the sub-path baked in at build time so assets resolve under
+      # https://<user>.github.io/<repo>/. `base_path` is derived from the real
+      # Pages URL, so this stays correct for user/org sites served from `/` too.
+      - name: Build
+        run: npm run build
         env:
-          PZ_EDITOR_BASE: /${{ github.event.repository.name }}/
-
-      - uses: actions/configure-pages@v5
+          PZ_EDITOR_BASE: ${{ steps.pages.outputs.base_path }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

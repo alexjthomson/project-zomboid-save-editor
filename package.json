@@ -3,9 +3,8 @@
     "version": "0.1.0",
     "description": "Browser-based Project Zomboid players.db save editor",
     "scripts": {
-        "prepare:wasm": "node scripts/copy-wasm.mjs",
-        "dev": "npm run prepare:wasm && vite",
-        "build": "npm run prepare:wasm && tsc --noEmit && vite build",
+        "dev": "vite",
+        "build": "tsc --noEmit && vite build",
         "preview": "vite preview",
         "test": "vitest run",
         "test:watch": "vitest",

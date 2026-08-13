@@ -170,26 +170,40 @@ Covers the full definition of done:
 
 ## Deploying to GitHub Pages
 
-The repository includes `.github/workflows/deploy.yml`, which builds and
-publishes on every push to `main`.
+The repository includes `.github/workflows/deploy.yml`, which runs the tests,
+builds, and publishes on every push to `main`.
 
-1. Push the repository to GitHub.
-2. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. Push to `main`. The site appears at
-   `https://<user>.github.io/<repo>/`.
+There are only two steps, both one-off:
 
-The Vite `base` defaults to `/project-zomboid-save-editor/`. If your repository
-has a different name, either rename it or build with:
+1. **Push the repository to GitHub.**
+2. **Settings → Pages → Build and deployment → Source → select "GitHub Actions".**
+   (Not "Deploy from a branch".)
+
+That is all. Push to `main` — or run the workflow manually from the **Actions**
+tab, since it also accepts `workflow_dispatch` — and the site appears at
+`https://<user>.github.io/<repo>/`.
+
+No configuration is needed if you rename the repository. The workflow takes the
+sub-path from `actions/configure-pages` and passes it to the build, so the asset
+URLs always match wherever Pages actually serves the site, including a
+user/organisation site served from the domain root.
+
+### Building for somewhere else
+
+`npm run build` and upload `dist/` — the site is entirely static, with no
+server-side component. Override the sub-path if it is not served from the root:
 
 ```bash
-PZ_EDITOR_BASE=/your-repo-name/ npm run build
+PZ_EDITOR_BASE=/some/sub/path/ npm run build   # served under a sub-path
+PZ_EDITOR_BASE=/ npm run build                 # served from the domain root
 ```
 
-For a user/organisation site served from the domain root, use
-`PZ_EDITOR_BASE=/`.
+### If the deployed page is blank
 
-To host anywhere else, `npm run build` and upload `dist/` — it is entirely
-static, with no server-side component.
+That is almost always a base-path mismatch: open the browser console and look
+for 404s on `/assets/…`. Confirm the Pages source is set to **GitHub Actions**
+rather than a branch, which is what lets the workflow supply the correct
+sub-path.
 
 ---
 
