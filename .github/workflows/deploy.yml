@@ -37,6 +37,10 @@ jobs:
       - name: Configure Pages
         id: pages
         uses: actions/configure-pages@v5
+        with:
+          # Turns Pages on and switches it to the "GitHub Actions" source the
+          # first time this runs, so no manual repository setup is needed.
+          enablement: true
 
       # Vite needs the sub-path baked in at build time so assets resolve under
       # https://<user>.github.io/<repo>/. `base_path` is derived from the real

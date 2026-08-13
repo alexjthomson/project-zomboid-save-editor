@@ -18,6 +18,8 @@ describe('repository', () => {
     it('has a Pages workflow wired to the build, tests and base path', () => {
         const w = read('.github/workflows/deploy.yml');
         expect(w).toContain('actions/configure-pages');
+        // Enables Pages on first run so no manual repository setup is required.
+        expect(w).toContain('enablement: true');
         expect(w).toContain('actions/upload-pages-artifact');
         expect(w).toContain('actions/deploy-pages');
         expect(w).toContain('npm test');

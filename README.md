@@ -173,15 +173,15 @@ Covers the full definition of done:
 The repository includes `.github/workflows/deploy.yml`, which runs the tests,
 builds, and publishes on every push to `main`.
 
-There are only two steps, both one-off:
+**Just push to `main`.** The workflow enables Pages itself on its first run
+(`configure-pages` with `enablement: true`), so there is normally nothing to
+configure. The site appears at `https://<user>.github.io/<repo>/`.
 
-1. **Push the repository to GitHub.**
-2. **Settings → Pages → Build and deployment → Source → select "GitHub Actions".**
-   (Not "Deploy from a branch".)
+If your organisation restricts Pages, or the first run fails on the *Configure
+Pages* step with `Get Pages site failed`, enable it once by hand:
 
-That is all. Push to `main` — or run the workflow manually from the **Actions**
-tab, since it also accepts `workflow_dispatch` — and the site appears at
-`https://<user>.github.io/<repo>/`.
+**Settings → Pages → Build and deployment → Source → "GitHub Actions"**
+(not "Deploy from a branch"), then re-run the workflow from the **Actions** tab.
 
 No configuration is needed if you rename the repository. The workflow takes the
 sub-path from `actions/configure-pages` and passes it to the build, so the asset
