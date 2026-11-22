@@ -13,8 +13,17 @@
  * `players.db`.)
  */
 
-/** Version constant hard-coded in `IsoPlayer.save()` — zombie/characters/IsoPlayer.java:1526. */
-export const CURRENT_WORLD_VERSION = 249;
+/**
+ * The version this parser was originally derived from: the constant hard-coded
+ * in `IsoPlayer.save()` of that build — zombie/characters/IsoPlayer.java:1526.
+ */
+export const DERIVED_FROM_WORLD_VERSION = 249;
+
+/**
+ * The newest version this editor understands: `IsoWorld.WorldVersion` in the
+ * newest build whose source has been checked.
+ */
+export const CURRENT_WORLD_VERSION = 251;
 
 /**
  * The oldest version this editor will attempt to parse. Older saves use
@@ -24,8 +33,19 @@ export const CURRENT_WORLD_VERSION = 249;
  */
 export const MIN_SUPPORTED_WORLD_VERSION = 219;
 
-/** Versions that have been checked field-by-field against the decompiled source. */
-export const FULLY_SUPPORTED_WORLD_VERSIONS: readonly number[] = [249];
+/**
+ * Versions that have been checked field-by-field against the decompiled source.
+ *
+ * 249: the build the parser was written from.
+ * 250, 251: checked against the version 251 build. Every `load` method this
+ * parser mirrors reads the same fields in the same order, and none of them
+ * contains a `worldVersion >= 250` or `>= 251` branch. The two constants those
+ * versions introduced (`WorldVersion_VehicleTowedByID` = 250 and
+ * `WorldVersion_AttemptedKeyDrop` = 251) are not referenced by any class that
+ * takes part in the player BLOB. A real version 251 save also round-trips
+ * byte-for-byte.
+ */
+export const FULLY_SUPPORTED_WORLD_VERSIONS: readonly number[] = [249, 250, 251];
 
 export type SupportLevel = 'full' | 'partial' | 'unsupported';
 
@@ -40,7 +60,7 @@ export function getVersionSupport(version: number): VersionSupport {
         return {
             version,
             level: 'full',
-            message: `World version ${version} matches the version this editor was derived from (build 42).`,
+            message: `World version ${version} has been checked against the game's source (build 42).`,
         };
     }
     if (version > CURRENT_WORLD_VERSION) {
@@ -57,9 +77,9 @@ export function getVersionSupport(version: number): VersionSupport {
             version,
             level: 'partial',
             message:
-                `World version ${version} is older than ${CURRENT_WORLD_VERSION}. Version-conditional ` +
+                `World version ${version} is older than ${DERIVED_FROM_WORLD_VERSION}. Version-conditional ` +
                 `fields are handled, but this combination has not been verified against a real save. ` +
-                `Round-trip verification will decide whether editing is allowed.`,
+                `Editing is allowed only for characters whose data re-serializes byte-for-byte.`,
         };
     }
     return {

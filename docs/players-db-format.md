@@ -86,7 +86,7 @@ CREATE INDEX inpusername ON networkPlayers (username);
 | `name` | `forename + " " + surname`, duplicated from the descriptor inside the BLOB. |
 | `steamid` | Steam ID as text, `0` when Steam is not in use. |
 | `x` / `y` / `z` | Duplicated from the BLOB so the server can locate a player without deserializing. Kept in sync on export. |
-| `wx` / `wy` | `localPlayers` only: chunk coordinates, `floor(x / 8)`. |
+| `wx` / `wy` | `localPlayers` only: chunk coordinates, `floor(x / 8)`. Recomputed on export when the character has moved. |
 | `worldversion` | **Required to parse `data`.** See §4. |
 | `data` | The player BLOB. See §5 onward. |
 | `isDead` | **The authoritative persistent death flag.** See §8. |
@@ -171,8 +171,37 @@ can only be parsed alongside its row.
 *does* start with a `PLYR` magic and an int32 version, but that is a different
 file and is not what `players.db` stores.)
 
-Current version constant: **249** — hard-coded in `IsoPlayer.save`,
-`zombie/characters/IsoPlayer.java:1526`.
+Current version constant: **251** (`IsoWorld.WorldVersion`, also written by
+`IsoPlayer.save`). The parser was originally derived from the version **249**
+build, and the source line numbers cited throughout this document are from that
+build.
+
+**World versions 250 and 251** were then checked against the version 251
+build's source:
+
+* Every `load` method mirrored here (`IsoMovingObject`, `IsoGameCharacter`,
+  `IsoPlayer`, `SurvivorDesc`, `HumanVisual`, `ItemVisual`, `ItemContainer`,
+  `CompressIdenticalItems`, `Stats`, `BodyDamage`, `Thermoregulator`, `XP`,
+  `CharacterTraits`, `Nutrition`, `Fitness`, `PlayerCraftHistory`,
+  `PlayerCheats`, `KahluaTableImpl`) reads the same fields in the same order as
+  §5 and §6 describe, and `CharacterStat.ORDERED_STATS` is unchanged.
+* None of those classes, nor anything else under `zombie/characters`,
+  `zombie/inventory` or `zombie/savefile`, has a `worldVersion >= 250` or
+  `>= 251` branch. The newest gate in the player BLOB is still
+  `Thermoregulator`'s `>= 249`.
+* The two constants the new versions introduced,
+  `WorldVersion_VehicleTowedByID` (250) and `WorldVersion_AttemptedKeyDrop`
+  (251), are not referenced by any of those classes.
+* The death logic in §8 is unchanged: `isDead()`, `calculateOverallHealth()`
+  and the `isDead` column override in `PlayerDB` / `ServerPlayerDB`.
+* A real version 251 single-player save (one `localPlayers` row) parses with
+  zero trailing bytes and re-serializes byte-for-byte, and a character revived
+  from it loaded in the game.
+
+Versions above 251 stay disabled. Independently of the version, the editor
+round-trips every BLOB when a file is opened and disables editing for any
+character that does not reproduce exactly; such a BLOB is written back
+unchanged.
 
 ### 4.1 Version gates in the player BLOB
 

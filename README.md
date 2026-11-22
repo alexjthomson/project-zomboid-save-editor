@@ -209,8 +209,12 @@ sub-path.
 
 ## Limitations
 
-* Verified against **world version 249** (Build 42). Other versions are detected;
-  newer ones disable editing rather than guessing.
+* Supports **world versions 249, 250 and 251** (Build 42), each checked against
+  the game's source. Older versions back to 219 are parsed with a warning;
+  anything newer than 251 disables editing rather than guessing.
+* Every character is round-tripped when the file is opened. One that does not
+  reproduce its original bytes exactly cannot be edited and is written back
+  unchanged.
 * **Inventory is read-only.** Item bodies use a large, subclass-dependent bit-header
   format that is not fully decoded. They are preserved byte-for-byte, so they are
   never corrupted, but they cannot be edited and item *names* cannot be shown —

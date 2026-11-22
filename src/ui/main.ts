@@ -158,7 +158,7 @@ function render(): void {
     renderHeader(session);
     renderChanges(session);
 
-    const editable = session.working !== null && session.versionSupport.level !== 'unsupported';
+    const editable = state.isEditable(session);
     const currentBlob = state.currentBlob(session);
 
     const ctx = {

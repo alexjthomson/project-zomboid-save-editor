@@ -2,3 +2,7 @@ node_modules/
 dist/
 *.local
 .DS_Store
+# Private save files and game files dropped in for testing. Never commit these.
+/save/
+/input/
+/inputs/
