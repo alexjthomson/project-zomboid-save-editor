@@ -216,6 +216,15 @@ export function versionWarning(session: PlayerSession): HTMLElement | null {
 }
 
 export function parseErrorBox(session: PlayerSession): HTMLElement | null {
+    if (!session.parseError && session.working && !session.roundTripOk) {
+        return el(
+            'div',
+            { class: 'err-box' },
+            `This character's BLOB was decoded but does not re-serialize to the same bytes, so this ` +
+                `editor does not fully understand its layout. Editing is disabled and its bytes will be ` +
+                `written back unchanged.`,
+        );
+    }
     if (!session.parseError) return null;
     return el(
         'div',

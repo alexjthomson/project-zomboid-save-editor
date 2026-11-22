@@ -25,6 +25,12 @@ export interface PlayerSession {
     isDead: boolean;
     parseError: Error | null;
     parseErrorOffset: number | null;
+    /**
+     * True when the unmodified BLOB parsed completely and re-serialized to the
+     * exact original bytes. Editing is refused otherwise: a layout this parser
+     * only partly understands would be rewritten wrongly.
+     */
+    readonly roundTripOk: boolean;
     versionSupport: VersionSupport;
 }
 
@@ -52,6 +58,10 @@ export class EditorState {
 
         this.sessions = db.listPlayers().map((record) => {
             const result = tryParsePlayerBlob(record.data, record.worldVersion);
+            const roundTripOk =
+                result.player !== null &&
+                result.player.trailingBytes.length === 0 &&
+                bytesEqual(serializePlayerBlob(result.player, record.worldVersion), record.data);
             return {
                 record,
                 originalBlob: record.data.slice(),
@@ -61,6 +71,7 @@ export class EditorState {
                 isDead: record.isDead,
                 parseError: result.error,
                 parseErrorOffset: result.errorOffset,
+                roundTripOk,
                 versionSupport: getVersionSupport(record.worldVersion),
             };
         });
@@ -75,21 +86,28 @@ export class EditorState {
         this.fileSize = 0;
     }
 
-    /** Serializes the working model, or the untouched original when unparsed. */
+    /** True when this character may be edited and written back. */
+    isEditable(session: PlayerSession): boolean {
+        return (
+            session.working !== null &&
+            session.roundTripOk &&
+            session.versionSupport.level !== 'unsupported'
+        );
+    }
+
+    /**
+     * Serializes the working model, or returns the untouched original when the
+     * BLOB is unparsed or failed round-trip verification.
+     */
     currentBlob(session: PlayerSession): Uint8Array {
-        if (!session.working) return session.originalBlob;
+        if (!session.working || !session.roundTripOk) return session.originalBlob;
         return serializePlayerBlob(session.working, session.record.worldVersion);
     }
 
     isModified(session: PlayerSession): boolean {
         if (session.isDead !== session.originalIsDead) return true;
         if (!session.working) return false;
-        const current = this.currentBlob(session);
-        if (current.length !== session.originalBlob.length) return true;
-        for (let i = 0; i < current.length; i++) {
-            if (current[i] !== session.originalBlob[i]) return true;
-        }
-        return false;
+        return !bytesEqual(this.currentBlob(session), session.originalBlob);
     }
 
     get modifiedCount(): number {
@@ -123,12 +141,18 @@ export class EditorState {
                 data: blob,
                 isDead: session.isDead,
             };
-            if (session.working) {
+            if (session.working && session.roundTripOk) {
                 // Keep the indexed coordinate and name columns consistent with the
                 // BLOB, exactly as ServerPlayerDB.saveNetworkCharacter does.
                 record.x = session.working.movingObject.x;
                 record.y = session.working.movingObject.y;
                 record.z = session.working.movingObject.z;
+                if (record.table === 'localPlayers') {
+                    // Chunk coordinates, floor(x / 8); stale values would point the
+                    // game at the chunk the character used to stand in.
+                    record.wx = Math.floor(record.x / 8);
+                    record.wy = Math.floor(record.y / 8);
+                }
                 if (session.working.descriptor) {
                     const { forename, surname } = session.working.descriptor;
                     record.name = `${forename} ${surname}`.trim();
@@ -139,4 +163,12 @@ export class EditorState {
         }
         return this.db.export();
     }
+}
+
+function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
 }
